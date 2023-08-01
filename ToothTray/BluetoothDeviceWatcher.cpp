@@ -14,7 +14,7 @@ void OutputDeviceProperties(std::wostringstream& sout, const winrt::Windows::Fou
     for (const auto& kvp : properties) {
         const winrt::hstring&& propName = kvp.Key();
         if (propName == L"System.Devices.Aep.ContainerId") {
-            winrt::guid containerId = kvp.Value().as<winrt::guid>();
+            winrt::guid containerId = winrt::unbox_value<winrt::guid>(kvp.Value());
             sout << propName.c_str();
         }
         else {

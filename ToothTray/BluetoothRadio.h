@@ -5,7 +5,7 @@
 
 class BluetoothDevice {
 public:
-    constexpr BluetoothDevice() : m_hRadio(NULL), m_info({ 0 }) {}
+    BluetoothDevice() : m_hRadio(NULL), m_info({ 0 }) {}
     BluetoothDevice(HANDLE hRadio, const BLUETOOTH_DEVICE_INFO& info);
 
     void Enable();
@@ -21,15 +21,15 @@ private:
 class BluetoothRadio {
 public:
     static BluetoothRadio FindFirst();
-    constexpr BluetoothRadio(std::nullptr_t) : m_hRadio(NULL), m_hNotify(NULL) {}
+    BluetoothRadio(std::nullptr_t) : m_hRadio(NULL), m_hNotify(NULL) {}
     ~BluetoothRadio() noexcept;
 
-    constexpr BluetoothRadio(BluetoothRadio&& other) noexcept : m_hRadio(other.m_hRadio), m_hNotify(other.m_hNotify)
+    BluetoothRadio(BluetoothRadio&& other) noexcept : m_hRadio(other.m_hRadio), m_hNotify(other.m_hNotify)
     {
         other.m_hRadio = other.m_hNotify = NULL;
     }
 
-    constexpr BluetoothRadio& operator=(BluetoothRadio&& other) noexcept
+    BluetoothRadio& operator=(BluetoothRadio&& other) noexcept
     {
         std::swap(m_hRadio, other.m_hRadio);
         std::swap(m_hNotify, other.m_hNotify);
@@ -44,7 +44,7 @@ public:
     void EnableAudioSink();
     void DisableAudioSink();
 private:
-    constexpr BluetoothRadio(HANDLE hRadio) : m_hRadio(hRadio), m_hNotify(NULL) {}
+    BluetoothRadio(HANDLE hRadio) : m_hRadio(hRadio), m_hNotify(NULL) {}
 
     HANDLE m_hRadio;
     HDEVNOTIFY m_hNotify;

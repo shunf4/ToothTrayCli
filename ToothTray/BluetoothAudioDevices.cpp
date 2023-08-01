@@ -114,7 +114,7 @@ std::vector<BluetoothConnector> BluetoothAudioDeviceEnumerator::EnumerateAudioDe
                 std::unordered_map<GUID, std::wstring, GUIDHasher, GUIDEqualityComparer>::const_iterator containerIte = containers.find(containerId);
                 if (containerIte != containers.cend()) {
                     const std::wstring& containerName = containerIte->second;
-                    ite = bluetoothConnectors.emplace(std::piecewise_construct, std::forward_as_tuple(containerId), std::forward_as_tuple(containerName)).first;
+                    ite = bluetoothConnectors.emplace(std::piecewise_construct, std::forward_as_tuple(containerId), std::forward_as_tuple(containerName, containerId)).first;
                 }
             }
 

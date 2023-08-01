@@ -4,6 +4,8 @@
 #include "framework.h"
 #include "ToothTray.h"
 #include <memory>
+#include <cstdio>
+#include <functional>
 #include <winrt/base.h>
 
 #include "debuglog.h"
@@ -28,6 +30,205 @@ ATOM                MyRegisterClass(HINSTANCE hInstance);
 BOOL                InitInstance(HINSTANCE, int);
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
+
+int wmain(int argc, wchar_t* argv[]) {
+    winrt::init_apartment();
+    std::vector<BluetoothConnector> connectors = bluetoothAudioDeviceEmumerator.EnumerateAudioDevices();
+
+    std::setlocale(LC_ALL, "");
+
+    const wchar_t* command = L"list";
+    if (argc >= 2) {
+        command = argv[1];
+    }
+  
+    if (lstrcmpW(command, L"list") == 0) {
+        for (std::vector<BluetoothConnector>::iterator ite = connectors.begin(); ite != connectors.end(); ++ite) {
+            std::wstring deviceName = std::wstring(ite->DeviceName());
+            bool checked = ite->IsConnected();
+
+            wprintf(L"%ls %ls %ls\n", checked ? L"1" : L"0", std::wstring(ite->ContainerId()).c_str(), deviceName.c_str());
+        }
+        return 0;
+    } else if(lstrcmpW(command, L"is-connected") == 0 && argc >= 3) {
+        const wchar_t* isConnectedArg = argv[2];
+        bool found = false;
+
+        for (std::vector<BluetoothConnector>::iterator ite = connectors.begin(); ite != connectors.end(); ++ite) {
+            std::wstring deviceName = std::wstring(ite->DeviceName());
+            bool checked = ite->IsConnected();
+
+            if (lstrcmpW(isConnectedArg, deviceName.c_str()) == 0) {
+                wprintf(checked ? L"1\n" : L"0\n");
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            fwprintf(stderr, L"device not found (2)\n");
+            return 2;
+        }
+        return 0;
+    }
+    else if (lstrcmpW(command, L"is-connected-by-container-id") == 0 && argc >= 3) {
+        const wchar_t* isConnectedArg = argv[2];
+        bool found = false;
+
+        for (std::vector<BluetoothConnector>::iterator ite = connectors.begin(); ite != connectors.end(); ++ite) {
+            bool checked = ite->IsConnected();
+
+            if (lstrcmpW(isConnectedArg, std::wstring(ite->ContainerId()).c_str()) == 0) {
+                wprintf(checked ? L"1\n" : L"0\n");
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            fwprintf(stderr, L"device not found (2)\n");
+            return 2;
+        }
+        return 0;
+    }
+    else if (lstrcmpW(command, L"connect") == 0 && argc >= 3) {
+        const wchar_t* connectArg = argv[2];
+
+        bool force = false;
+        if (argc >= 4 && lstrcmpW(argv[2], L"-f") == 0) {
+            connectArg = argv[3];
+            force = true;
+        }
+
+        bool found = false;
+
+        for (std::vector<BluetoothConnector>::iterator ite = connectors.begin(); ite != connectors.end(); ++ite) {
+            if (lstrcmpW(connectArg, std::wstring(ite->DeviceName()).c_str()) == 0) {
+                ite->Connect();
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            fwprintf(stderr, L"device not found (2)\n");
+            return 2;
+        }
+        return 0;
+    }
+    else if (lstrcmpW(command, L"connect-by-container-id") == 0 && argc >= 3) {
+        const wchar_t* connectArg = argv[2];
+
+        bool force = false;
+        if (argc >= 4 && lstrcmpW(argv[2], L"-f") == 0) {
+            connectArg = argv[3];
+            force = true;
+        }
+
+        bool found = false;
+
+        for (std::vector<BluetoothConnector>::iterator ite = connectors.begin(); ite != connectors.end(); ++ite) {
+            if (lstrcmpW(connectArg, std::wstring(ite->ContainerId()).c_str()) == 0) {
+                if (force || !ite->IsConnected()) {
+                    ite->Connect();
+                }
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            fwprintf(stderr, L"device not found (2)\n");
+            return 2;
+        }
+        return 0;
+    }
+    else if (lstrcmpW(command, L"connect-by-container-id") == 0 && argc >= 3) {
+        const wchar_t* connectArg = argv[2];
+
+        bool force = false;
+        if (argc >= 4 && lstrcmpW(argv[2], L"-f") == 0) {
+            connectArg = argv[3];
+            force = true;
+        }
+
+        bool found = false;
+
+        for (std::vector<BluetoothConnector>::iterator ite = connectors.begin(); ite != connectors.end(); ++ite) {
+            if (lstrcmpW(connectArg, std::wstring(ite->ContainerId()).c_str()) == 0) {
+                if (force || !ite->IsConnected()) {
+                    ite->Connect();
+                }
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            fwprintf(stderr, L"device not found (2)\n");
+            return 2;
+        }
+        return 0;
+    }
+    else if (lstrcmpW(command, L"disconnect") == 0 && argc >= 3) {
+        const wchar_t* connectArg = argv[2];
+
+        bool force = false;
+        if (argc >= 4 && lstrcmpW(argv[2], L"-f") == 0) {
+            connectArg = argv[3];
+            force = true;
+        }
+
+        bool found = false;
+
+        for (std::vector<BluetoothConnector>::iterator ite = connectors.begin(); ite != connectors.end(); ++ite) {
+            if (lstrcmpW(connectArg, std::wstring(ite->DeviceName()).c_str()) == 0) {
+                if (force || ite->IsConnected()) {
+                    ite->Disconnect();
+                }
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            fwprintf(stderr, L"device not found (2)\n");
+            return 2;
+        }
+        return 0;
+    }
+    else if (lstrcmpW(command, L"disconnect-by-container-id") == 0 && argc >= 3) {
+        const wchar_t* connectArg = argv[2];
+
+        bool force = false;
+        if (argc >= 4 && lstrcmpW(argv[2], L"-f") == 0) {
+            connectArg = argv[3];
+            force = true;
+        }
+
+        bool found = false;
+
+        for (std::vector<BluetoothConnector>::iterator ite = connectors.begin(); ite != connectors.end(); ++ite) {
+            if (lstrcmpW(connectArg, std::wstring(ite->ContainerId()).c_str()) == 0) {
+                if (force || ite->IsConnected()) {
+                    ite->Disconnect();
+                }
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            fwprintf(stderr, L"device not found (2)\n");
+            return 2;
+        }
+        return 0;
+    }
+    
+    const wchar_t* helpText = L"toothtray-cli list\ntoothtray-cli is-connected \"My Device\"\ntoothtray-cli is-connected-by-container-id {xxx}\ntoothtray-cli connect[-by-container-id] [-f] ...\ntoothtray-cli disconnect[-by-container-id] [-f] ...\n";
+
+    if (lstrcmpW(command, L"-h") == 0 || lstrcmpW(command, L"--help") == 0) {
+        fwprintf(stdout, helpText);
+    }
+    else {
+        fwprintf(stderr, helpText);
+    }
+
+    return 0;
+}
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
