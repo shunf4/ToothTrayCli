@@ -36,7 +36,7 @@ std::vector<BluetoothConnector> BluetoothAudioDeviceEnumerator::EnumerateAudioDe
     DebugLogHresult(hr);
 
     wil::com_ptr <IMMDeviceCollection> pDevices;
-    hr = pEnumerator->EnumAudioEndpoints(eRender, DEVICE_STATEMASK_ALL, pDevices.put());
+    hr = pEnumerator->EnumAudioEndpoints(eAll, DEVICE_STATEMASK_ALL, pDevices.put());
     DebugLogHresult(hr);
 
     UINT deviceCount = 0;
