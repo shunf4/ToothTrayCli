@@ -38,15 +38,19 @@ static FILE* g_CrashLogFile = NULL;
 
 void CrashLog(const char* format, ...) {
     char buffer[512];
+    int a = snprintf(buffer, sizeof(buffer), "ToothTrayCLI - ");
+    if (a < 0) {
+        return;
+    }
     va_list args;
     va_start(args, format);
-    vsnprintf(buffer, sizeof(buffer), format, args);
+    vsnprintf(buffer + a, sizeof(buffer) - a, format, args);
     va_end(args);
 
     OutputDebugStringA(buffer);
 
     if (!g_CrashLogFile) {
-        fopen_s(&g_CrashLogFile, "ToothTrayCLI_crash_log.txt", "w");
+        // fopen_s(&g_CrashLogFile, "ToothTrayCLI_crash_log.txt", "w");
         if (g_CrashLogFile) {
             setvbuf(g_CrashLogFile, NULL, _IONBF, 0);
         }
@@ -56,11 +60,11 @@ void CrashLog(const char* format, ...) {
         fflush(g_CrashLogFile);
     }
 
-    if (strstr(buffer, "[INIT] ") == buffer) {
+    if (strstr(format, "[INIT] ") == format) {
 
     }
     else {
-        fprintf_s(stderr, "%s\n", buffer);
+        fprintf_s(stderr, "%s", buffer);
     }
 }
 
