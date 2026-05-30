@@ -1,17 +1,20 @@
 // ToothTray.cpp : Defines the entry point for the application.
 //
-
 #include "framework.h"
 #include "ToothTray.h"
 #include <memory>
 #include <cstdio>
 #include <functional>
 #include <winrt/base.h>
+#include <stdio.h>
+#include <dbghelp.h>
 
 #include "debuglog.h"
 #include "BluetoothAudioDevices.h"
 #include "TrayIcon.h"
 #include "ToothTrayMenu.h"
+
+#pragma comment(lib, "dbghelp.lib")
 
 #define MAX_LOADSTRING 100
 
@@ -31,7 +34,81 @@ BOOL                InitInstance(HINSTANCE, int);
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
 
+static FILE* g_CrashLogFile = NULL;
+
+void CrashLog(const char* format, ...) {
+    char buffer[512];
+    va_list args;
+    va_start(args, format);
+    vsnprintf(buffer, sizeof(buffer), format, args);
+    va_end(args);
+
+    OutputDebugStringA(buffer);
+
+    if (!g_CrashLogFile) {
+        fopen_s(&g_CrashLogFile, "ToothTrayCLI_crash_log.txt", "w");
+        if (g_CrashLogFile) {
+            setvbuf(g_CrashLogFile, NULL, _IONBF, 0);
+        }
+    }
+    if (g_CrashLogFile) {
+        fprintf_s(g_CrashLogFile, "%s", buffer);
+        fflush(g_CrashLogFile);
+    }
+
+    if (strstr(buffer, "[INIT] ") == buffer) {
+
+    }
+    else {
+        fprintf_s(stderr, "%s\n", buffer);
+    }
+}
+
+void CreateMiniDump(struct _EXCEPTION_POINTERS* exceptionInfo) {
+    HANDLE hFile = CreateFileA("ToothTrayCLI_crash_dump.dmp", GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+    if (hFile != INVALID_HANDLE_VALUE) {
+        MINIDUMP_EXCEPTION_INFORMATION dumpInfo;
+        dumpInfo.ThreadId = GetCurrentThreadId();
+        dumpInfo.ExceptionPointers = exceptionInfo;
+        dumpInfo.ClientPointers = TRUE;
+
+        MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(), hFile, MiniDumpNormal, &dumpInfo, NULL, NULL);
+        CloseHandle(hFile);
+        CrashLog("[CRASH] MiniDump generated to ToothTrayCLI_crash_dump.dmp\n");
+    } else {
+        CrashLog("[CRASH] MiniDump generation fails: %d\n", GetLastError());
+    }
+}
+
+LONG WINAPI RunCrashHandler(struct _EXCEPTION_POINTERS* ExceptionInfo) {
+    DWORD code = ExceptionInfo->ExceptionRecord->ExceptionCode;
+    PVOID addr = ExceptionInfo->ExceptionRecord->ExceptionAddress;
+
+    CrashLog("\n========================================\n");
+    CrashLog("[CRASH] ExceptionCode: 0x%X\n", code);
+    CrashLog("[CRASH] ExceptionAddress: 0x%p\n", addr);
+    
+    if (code == 0xC0000005) CrashLog("[CRASH] Access Violation\n");
+    if (code == 0xC00000FD) CrashLog("[CRASH] Stack Overflow\n");
+    
+    CreateMiniDump(ExceptionInfo);
+    CrashLog("========================================\n");
+
+    if (g_CrashLogFile) {
+        fclose(g_CrashLogFile);
+    }
+
+    return EXCEPTION_CONTINUE_SEARCH; 
+}
+
+#define INIT_CRASH_MONITOR() do { \
+    SetUnhandledExceptionFilter(RunCrashHandler); \
+    CrashLog("[INIT] --- Crash Hanlder Enabled ---\n"); \
+} while(0)
+
 int wmain(int argc, wchar_t* argv[]) {
+    INIT_CRASH_MONITOR();
+
     winrt::init_apartment();
     std::vector<BluetoothConnector> connectors = bluetoothAudioDeviceEmumerator.EnumerateAudioDevices();
 

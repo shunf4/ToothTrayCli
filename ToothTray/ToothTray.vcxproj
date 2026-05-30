@@ -24,6 +24,7 @@
     <ProjectGuid>{ee3ff316-6c88-459a-88fb-fbb1d0ee45e7}</ProjectGuid>
     <RootNamespace>ToothTray</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>ToothTrayCLI</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
@@ -92,7 +93,7 @@
       <AdditionalOptions>/await %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>Ws2_32.lib;Bthprops.lib;windowsapp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
@@ -107,7 +108,7 @@
       <AdditionalOptions>/await %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>Ws2_32.lib;Bthprops.lib;windowsapp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>

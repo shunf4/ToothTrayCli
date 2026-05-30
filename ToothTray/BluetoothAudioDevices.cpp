@@ -80,6 +80,9 @@ std::vector<BluetoothConnector> BluetoothAudioDeviceEnumerator::EnumerateAudioDe
 
         wil::com_ptr<IDeviceTopology> pTopology;
         pDevice->Activate(__uuidof(IDeviceTopology), CLSCTX_ALL, NULL, pTopology.put_void());
+        if (!pTopology) {
+            continue;
+        }
 
         UINT connectorCount;
         pTopology->GetConnectorCount(&connectorCount);
